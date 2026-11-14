@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Story Memory Test</title>
+<style>
+:root { --bg:#f4f6f5; --card:#fff; --ink:#15201c; --soft:#5d6b65; --line:#cfd8d3; --go:#10605a; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1513; --card:#17201d; --ink:#e6ece9; --soft:#9aa8a2; --line:#2c3833; --go:#3d9d92; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.6 system-ui,"Segoe UI",Tahoma,Arial,sans-serif; }
+main { max-width:640px; margin:0 auto; padding:28px 16px; }
+h1 { font-size:26px; margin:0 0 8px; }
+a.card { display:block; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 20px; margin:0 0 12px;
+         color:var(--ink); text-decoration:none; }
+a.card b { color:var(--go); }
+.soft { color:var(--soft); font-size:15px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Story memory test</h1>
+  <p class="soft">A draft of the memory test. The story, the questions and every word on the screens are placeholders.
+  Answers and recordings stay on the device; nothing is sent anywhere.</p>
+  <a class="card" href="test_ar_eg.html"><b lang="ar" dir="rtl">اختبار ذاكرة الحكاية</b>, Egyptian Arabic<br>
+    <span class="soft">The test itself. Asks for the microphone.</span></a>
+  <a class="card" href="test_en.html"><b>Story memory test</b>, English<br>
+    <span class="soft">The test itself. Asks for the microphone.</span></a>
+  <a class="card" href="how_it_works.html"><b>How it works</b><br>
+    <span class="soft">A walkthrough: the patient's screen beside what the tool does with each answer. No microphone.</span></a>
+</main>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اختبار ذاكرة الحكاية</title>
+<style>
+:root { --bg:#f4f6f5; --card:#fff; --ink:#15201c; --soft:#5d6b65; --line:#cfd8d3; --go:#10605a; --go-ink:#fff;
+        --pick:#dcece9; --warn:#9d3125; --ok:#45662d; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1513; --card:#17201d; --ink:#e6ece9; --soft:#9aa8a2; --line:#2c3833;
+        --go:#3d9d92; --go-ink:#06110f; --pick:#14302d; --warn:#e0705f; --ok:#8cbf6a; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:19px/1.6 system-ui,"Segoe UI",Tahoma,Arial,sans-serif; }
+main { max-width:720px; margin:0 auto; padding:22px 16px 60px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px 22px; }
+h1 { font-size:25px; margin:0 0 10px; }
+h2 { font-size:17px; margin:22px 0 8px; }
+p { margin:0 0 14px; }
+.soft { color:var(--soft); font-size:15px; }
+button { font:inherit; cursor:pointer; border-radius:12px; border:2px solid var(--line); background:var(--card); color:var(--ink); padding:14px 18px; }
+button.go { background:var(--go); border-color:var(--go); color:var(--go-ink); font-weight:600; min-width:220px; }
+button.opt { display:block; width:100%; text-align:start; margin:0 0 12px; min-height:64px; }
+button.opt.say { border-color:var(--go); box-shadow:0 0 0 3px var(--pick); }
+button.idk { border-style:dashed; color:var(--soft); }
+button.again { display:block; font-size:16px; padding:8px 14px; margin:0 0 18px; }
+button:disabled { opacity:.45; cursor:default; }
+.stem { color:var(--soft); margin-bottom:4px; }
+.q { font-size:22px; font-weight:600; margin-bottom:16px; }
+.rec { display:inline-flex; align-items:center; gap:8px; color:var(--warn); font-size:15px; margin-bottom:12px; }
+.rec i { width:12px; height:12px; border-radius:50%; background:var(--warn); animation:blink 1.1s infinite; }
+@keyframes blink { 50% { opacity:.25; } }
+.row { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.exam { direction:ltr; text-align:left; font-size:15.5px; }
+.exam table { border-collapse:collapse; width:100%; margin:8px 0 16px; }
+.exam th, .exam td { border-bottom:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+.exam .marks button { padding:5px 10px; border-radius:8px; font-size:14px; border-width:1.5px; margin:2px 2px 2px 0; }
+.exam .marks button.on, .exam .sex.on { background:var(--pick); border-color:var(--go); font-weight:600; }
+.exam audio { height:32px; max-width:230px; }
+.exam label.field { display:block; margin:0 0 12px; }
+.exam input[type=text], .exam input[type=number] { font:inherit; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px;
+        background:var(--card); color:var(--ink); width:180px; margin-left:8px; }
+.big { font-size:30px; font-weight:700; }
+.tag { display:inline-block; font-size:12px; border:1px solid var(--line); border-radius:999px; padding:1px 8px; color:var(--soft); }
+label.unit { display:block; margin:4px 0; }
+.units { direction:rtl; text-align:start; }
+</style>
+</head>
+<body>
+<main><div class="card" id="app"></div></main>
+<script>
+"use strict";
+const DATA = {"story": "engagement", "title": "خطوبة منى", "locale": "ar_eg", "lang": "ar", "dir": "rtl", "seed": 3, "lines": ["خطوبة منى وكريم كانت يوم الخميس بالليل في البيت.", "قبلها بأسبوع، منى كانت اشترت فستان جديد أخضر.", "وقبلها بيوم، عادل كان دهن باب الشقة.", "والعيلة كانت قررت تطلب صينية بسبوسة زيادة.", "يوم الخميس الصبح، سامية، مامة منى، نزلت السوق بالقفة الخوص بتاعتها.", "اشترت برتقان للعصير، بس نسيت العيش.", "سامية قالت إن الطماطم سعرها بقى الضعف عن الأسبوع اللي فات.", "وقالت كمان إن أهل العريس هييجوا الساعة تمانية.", "عادل، أبو منى، قال إن تورتة الشوكولاتة هتجهز الساعة ستة.", "منى قالت إن الكوافيرة هتيجي الساعة أربعة.", "على الضهر، الكهربا قطعت في الشارع كله.", "عادل قال إن أهل العريس جايين عشرين واحد.", "عشان كده قرروا يعملوا الحفلة على السطح.", "بعدين سامية كلمت الحلواني وقالت إن التورتة هتجهز الساعة خمسة مش ستة.", "بعد العصر، التورتة وصلت.", "سامية قالت إن العمارة كلها عرفت بالخطوبة.", "عشان كده قرروا يأجروا كراسي من المحل اللي على الناصية.", "جارهم عم ماجد شاورلهم من البلكونة.", "أخت سامية اتصلت من إسكندرية عشان تباركلهم.", "بعدين كريم اتصل، ومنى قالت إن أهله هييجوا الساعة سبعة مش تمانية.", "راديو عادل القديم كان شغال أغاني أم كلثوم.", "منى لبست خاتم ستها الفضة.", "بالليل، الكهربا رجعت.", "وبعدها بشوية، أهل العريس وصلوا."], "story_seconds": 101, "units": [{"id": "c7", "asked": true, "text": "العريس اسمه كريم"}, {"id": "x1", "asked": false, "text": "منى اشترت فستان جديد"}, {"id": "c1", "asked": true, "text": "الفستان الجديد كان أخضر"}, {"id": "x2", "asked": false, "text": "عادل دهن باب الشقة"}, {"id": "d3", "asked": false, "text": "⇒ يطلبوا صينية بسبوسة زيادة"}, {"id": "e1", "asked": false, "text": "سامية نزلت السوق"}, {"id": "c2", "asked": true, "text": "سامية أخدت القفة الخوص"}, {"id": "c4", "asked": true, "text": "اشترت برتقان للعصير"}, {"id": "c5", "asked": true, "text": "نسيت العيش"}, {"id": "c3", "asked": true, "text": "سعر الطماطم بقى الضعف"}, {"id": "s1", "asked": false, "text": "سامية، الأم: «أهل العريس هييجوا الساعة تمانية»"}, {"id": "s3", "asked": false, "text": "عادل، الأب: «التورتة هتجهز الساعة ستة»"}, {"id": "c6", "asked": true, "text": "التورتة كانت شوكولاتة"}, {"id": "s5", "asked": false, "text": "منى، البنت: «الكوافيرة هتيجي الساعة أربعة»"}, {"id": "e2", "asked": false, "text": "الكهربا قطعت"}, {"id": "s6", "asked": false, "text": "عادل، الأب: «أهل العريس جايين عشرين واحد»"}, {"id": "d1", "asked": false, "text": "⇒ يعملوا الحفلة على السطح"}, {"id": "s4", "asked": false, "text": "سامية، الأم: «التورتة هتجهز الساعة خمسة»"}, {"id": "e3", "asked": false, "text": "التورتة وصلت"}, {"id": "s7", "asked": false, "text": "سامية، الأم: «العمارة كلها عرفت بالخطوبة»"}, {"id": "d2", "asked": false, "text": "⇒ يأجروا كراسي من المحل اللي على الناصية"}, {"id": "m1", "asked": false, "text": "عم ماجد شاورلهم من البلكونة"}, {"id": "c8", "asked": true, "text": "أخت سامية اتصلت من إسكندرية"}, {"id": "s2", "asked": false, "text": "منى، البنت: «أهل العريس هييجوا الساعة سبعة»"}, {"id": "c9", "asked": true, "text": "الراديو كان شغال أغاني أم كلثوم"}, {"id": "c10", "asked": true, "text": "منى لبست خاتم ستها الفضة"}, {"id": "e4", "asked": false, "text": "الكهربا رجعت"}, {"id": "e5", "asked": false, "text": "أهل العريس وصلوا"}], "questions": [{"kind": "context", "family": "TEMPORAL_NEXT", "fact": "e2", "stem": "في الحكاية: الكهربا قطعت.", "question": "إيه اللي حصل بعد كده على طول؟", "options": [{"text": "الكهربا رجعت", "kind": "tempting"}, {"text": "عادل دهن باب الشقة", "kind": "other"}, {"text": "التورتة وصلت", "kind": "right"}], "id": 1}, {"kind": "context", "family": "SOCIAL", "fact": "s7", "stem": "حد قال: العمارة كلها عرفت بالخطوبة.", "question": "مين صاحب الكلام ده؟", "options": [{"text": "عم ماجد، الجار", "kind": "other"}, {"text": "عادل، الأب", "kind": "tempting"}, {"text": "سامية، الأم", "kind": "right"}], "id": 2}, {"kind": "context", "family": "SOCIAL", "fact": "s2", "stem": "حد قال: أهل العريس هييجوا الساعة سبعة.", "question": "مين صاحب الكلام ده؟", "options": [{"text": "عم ماجد، الجار", "kind": "other"}, {"text": "منى، البنت", "kind": "right"}, {"text": "سامية، الأم", "kind": "tempting"}], "id": 3}, {"kind": "content", "family": "content", "fact": "c7", "stem": "", "question": "العريس اسمه إيه؟", "options": [{"text": "كريم", "kind": "right"}, {"text": "هاني", "kind": "other"}, {"text": "تامر", "kind": "other"}], "id": 4}, {"kind": "context", "family": "CAUSAL", "fact": "s7", "stem": "حد قال: العمارة كلها عرفت بالخطوبة.", "question": "قرروا إيه بسبب الكلام ده؟", "options": [{"text": "يطلبوا صينية بسبوسة زيادة", "kind": "other"}, {"text": "يأجروا كراسي من المحل اللي على الناصية", "kind": "right"}, {"text": "يعملوا الحفلة على السطح", "kind": "tempting"}], "id": 5}, {"kind": "content", "family": "content", "fact": "c5", "stem": "", "question": "سامية نسيت تشتري إيه؟", "options": [{"text": "الملح", "kind": "other"}, {"text": "العيش", "kind": "right"}, {"text": "السكر", "kind": "other"}], "id": 6}, {"kind": "content", "family": "content", "fact": "c4", "stem": "", "question": "سامية اشترت فاكهة إيه للعصير؟", "options": [{"text": "برتقان", "kind": "right"}, {"text": "جوافة", "kind": "other"}, {"text": "مانجة", "kind": "other"}], "id": 7}, {"kind": "content", "family": "content", "fact": "c9", "stem": "", "question": "الراديو كان شغال أغاني مين؟", "options": [{"text": "عبد الحليم", "kind": "other"}, {"text": "فيروز", "kind": "other"}, {"text": "أم كلثوم", "kind": "right"}], "id": 8}, {"kind": "context", "family": "REVISES", "fact": "s2", "stem": "بعدين حد قال: أهل العريس هييجوا الساعة سبعة.", "question": "وقبل كده كانوا قايلين الساعة كام؟", "options": [{"text": "الساعة ستة", "kind": "tempting"}, {"text": "الساعة أربعة", "kind": "other"}, {"text": "الساعة تمانية", "kind": "right"}], "id": 9}, {"kind": "content", "family": "content", "fact": "c2", "stem": "", "question": "سامية كانت شايلة حاجتها في إيه؟", "options": [{"text": "قفة خوص", "kind": "right"}, {"text": "شنطة قماش", "kind": "other"}, {"text": "كيس بلاستيك", "kind": "other"}], "id": 10}, {"kind": "content", "family": "content", "fact": "c6", "stem": "", "question": "التورتة كانت بإيه؟", "options": [{"text": "شوكولاتة", "kind": "right"}, {"text": "فانيليا", "kind": "other"}, {"text": "فراولة", "kind": "other"}], "id": 11}, {"kind": "content", "family": "content", "fact": "c8", "stem": "", "question": "أخت سامية اتصلت من أنهي بلد؟", "options": [{"text": "إسكندرية", "kind": "right"}, {"text": "المنصورة", "kind": "other"}, {"text": "الإسماعيلية", "kind": "other"}], "id": 12}, {"kind": "context", "family": "TEMPORAL_NEXT", "fact": "e1", "stem": "في الحكاية: سامية نزلت السوق.", "question": "إيه اللي حصل بعد كده على طول؟", "options": [{"text": "منى اشترت فستان جديد", "kind": "other"}, {"text": "الكهربا قطعت", "kind": "right"}, {"text": "التورتة وصلت", "kind": "tempting"}], "id": 13}, {"kind": "content", "family": "content", "fact": "c10", "stem": "", "question": "منى لبست إيه من حاجات ستها؟", "options": [{"text": "خاتم فضة", "kind": "right"}, {"text": "عقد لولي", "kind": "other"}, {"text": "غويشة دهب", "kind": "other"}], "id": 14}, {"kind": "context", "family": "TEMPORAL_NEXT", "fact": "e3", "stem": "في الحكاية: التورتة وصلت.", "question": "إيه اللي حصل بعد كده على طول؟", "options": [{"text": "منى اشترت فستان جديد", "kind": "other"}, {"text": "الكهربا رجعت", "kind": "right"}, {"text": "أهل العريس وصلوا", "kind": "tempting"}], "id": 15}, {"kind": "content", "family": "content", "fact": "c1", "stem": "", "question": "فستان منى الجديد كان لونه إيه؟", "options": [{"text": "أخضر", "kind": "right"}, {"text": "بمبي", "kind": "other"}, {"text": "أبيض", "kind": "other"}], "id": 16}, {"kind": "context", "family": "CAUSAL", "fact": "s6", "stem": "حد قال: أهل العريس جايين عشرين واحد.", "question": "قرروا إيه بسبب الكلام ده؟", "options": [{"text": "يأجروا كراسي من المحل اللي على الناصية", "kind": "tempting"}, {"text": "يعملوا الحفلة على السطح", "kind": "right"}, {"text": "يطلبوا صينية بسبوسة زيادة", "kind": "other"}], "id": 17}, {"kind": "context", "family": "REVISES", "fact": "s4", "stem": "بعدين حد قال: التورتة هتجهز الساعة خمسة.", "question": "وقبل كده كانوا قايلين الساعة كام؟", "options": [{"text": "الساعة أربعة", "kind": "other"}, {"text": "الساعة ستة", "kind": "right"}, {"text": "الساعة تمانية", "kind": "tempting"}], "id": 18}, {"kind": "content", "family": "content", "fact": "c3", "stem": "", "question": "في السوق، إيه اللي سعره بقى الضعف؟", "options": [{"text": "البطاطس", "kind": "other"}, {"text": "الطماطم", "kind": "right"}, {"text": "البصل", "kind": "other"}], "id": 19}, {"kind": "context", "family": "SOCIAL", "fact": "s6", "stem": "حد قال: أهل العريس جايين عشرين واحد.", "question": "مين صاحب الكلام ده؟", "options": [{"text": "عادل، الأب", "kind": "right"}, {"text": "سامية، الأم", "kind": "tempting"}, {"text": "عم ماجد، الجار", "kind": "other"}], "id": 20}], "ui": {"m": {"title": "اختبار ذاكرة الحكاية", "consent_title": "قبل ما نبدأ", "consent_text": "هتسمع حكاية قصيرة وبعدين هتجاوب على شوية أسئلة عنها. إجاباتك اللي هتقولها بصوتك هتتسجل عشان نراجعها بعدين. تقدر توقف في أي وقت.", "consent_yes": "موافق، سجّلوا إجاباتي", "consent_no_audio": "كمّل من غير تسجيل", "sound_title": "سامع الصوت ده؟", "sound_text": "دوس على الزرار واسمع. علّي الصوت لو محتاج.", "sound_sample": "ده الصوت اللي هيحكي الحكاية.", "sound_play": "شغّل الصوت", "sound_ok": "سامع كويس", "story_title": "الحكاية", "story_text": "اسمع كويس. هتسمع الحكاية مرة واحدة بس.", "story_start": "يلّا نبدأ الحكاية", "story_playing": "الحكاية شغالة...", "story_done": "الحكاية خلصت", "recall_title": "احكي الحكاية تاني", "recall_text": "قول لي كل اللي فاكره من الحكاية. خد وقتك.", "recall_done": "خلصت", "progress": "سؤال {n} من {total}", "open_prompt": "قول إجابتك بصوت عالي.", "open_done": "جاوبت", "options_prompt": "دلوقتي اختار واحدة.", "listen_again": "اسمع تاني", "abstain": "مش فاكر", "thanks_title": "شكراً", "thanks_text": "كده خلصنا. من فضلك رجّع التابلت."}, "f": {"title": "اختبار ذاكرة الحكاية", "consent_title": "قبل ما نبدأ", "consent_text": "هتسمعي حكاية قصيرة وبعدين هتجاوبي على شوية أسئلة عنها. إجاباتك اللي هتقوليها بصوتك هتتسجل عشان نراجعها بعدين. تقدري توقفي في أي وقت.", "consent_yes": "موافقة، سجّلوا إجاباتي", "consent_no_audio": "كمّلي من غير تسجيل", "sound_title": "سامعة الصوت ده؟", "sound_text": "دوسي على الزرار واسمعي. علّي الصوت لو محتاجة.", "sound_sample": "ده الصوت اللي هيحكي الحكاية.", "sound_play": "شغّلي الصوت", "sound_ok": "سامعة كويس", "story_title": "الحكاية", "story_text": "اسمعي كويس. هتسمعي الحكاية مرة واحدة بس.", "story_start": "يلّا نبدأ الحكاية", "story_playing": "الحكاية شغالة...", "story_done": "الحكاية خلصت", "recall_title": "احكي الحكاية تاني", "recall_text": "قولي لي كل اللي فاكراه من الحكاية. خدي وقتك.", "recall_done": "خلصتي", "progress": "سؤال {n} من {total}", "open_prompt": "قولي إجابتك بصوت عالي.", "open_done": "جاوبتي", "options_prompt": "دلوقتي اختاري واحدة.", "listen_again": "اسمعي تاني", "abstain": "مش فاكرة", "thanks_title": "شكراً", "thanks_text": "كده خلصنا. من فضلك رجّعي التابلت."}}};
+const QS = DATA.questions;
+let UI = DATA.ui.m;                    // set on the examiner's first screen: how the screens speak to the patient
+const DEMO = new URLSearchParams(location.search).has("demo");   // no microphone; answers are simulated by buttons
+const app = document.getElementById("app");
+const now = () => Math.round(performance.now());
+const S = { started: new Date().toISOString(), locale: DATA.locale, story: DATA.story, seed: DATA.seed,
+            patient: null, read_aloud: true, recording: false, recall: null,
+            recalled: DATA.units.map(() => false), answers: [] };
+const tell = (type, more) => { if (parent !== window) parent.postMessage(Object.assign({ rlm: true, type }, more || {}), "*"); };
+const h = (html) => { app.innerHTML = html; };
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const $ = (id) => document.getElementById(id);
+
+// ----------------------------------------------------------------- the voice
+// The story: one recorded human voice (story_<locale>.mp3 beside this page) when it exists.
+// Everything else, and the story until then: the browser's own voice, a placeholder.
+// Only one thing speaks at a time; starting anything new silences the last.
+const synth = window.speechSynthesis;
+if (synth) synth.getVoices();          // some browsers load their voices only when first asked
+let talk = 0, talking = false, player = null;
+function hush() {
+  talk++; talking = false;
+  if (synth) synth.cancel();
+  if (player) { player.pause(); player = null; }
+}
+// Says each line in turn. onEnd(true) when all were said, onEnd(false) when this device cannot say them.
+function say(lines, onEnd, onLine) {
+  hush();
+  const me = ++talk; talking = true;
+  const end = (ok) => { if (me !== talk) return; talk++; talking = false; onEnd(ok); };
+  const code = DATA.lang, voices = synth ? synth.getVoices() : [];
+  // No voice at all, or none for this language: say so, rather than an English voice stumbling through Arabic.
+  if (!synth || (voices.length && !voices.some((v) => v.lang.toLowerCase().startsWith(code)))) return end(false);
+  // One line at a time: a browser voice given a long passage in one go can stall partway.
+  lines.forEach((line, i) => {
+    const u = new SpeechSynthesisUtterance(line);
+    u.lang = code === "ar" ? "ar-EG" : "en-GB"; u.rate = 0.9;
+    u.onstart = () => { if (me === talk && onLine) onLine(i); };
+    u.onerror = () => end(false);
+    if (i === lines.length - 1) u.onend = () => end(true);
+    synth.speak(u);
+  });
+}
+// Questions and options are read only if the examiner left reading aloud on.
+const aloud = (lines, onEnd, onLine) => S.read_aloud ? say(lines, onEnd, onLine) : onEnd(false);
+function tellStory(onEnd) {
+  hush();
+  const me = talk; talking = true;
+  const file = player = new Audio("story_" + DATA.locale + ".mp3");
+  let fell = false;
+  const fallback = () => { if (fell || me !== talk) return; fell = true; player = null; say(DATA.lines, onEnd); };
+  file.onended = () => { if (me === talk) { talking = false; onEnd(true); } };
+  file.onerror = fallback;
+  file.play().catch(fallback);
+}
+
+// ----------------------------------------------------------------- the microphone
+let stream = null, audioCtx = null, analyser = null;
+async function openMic() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    S.recording = true;
+  } catch (e) { S.recording = false; }
+}
+// One clip: records until stop(), and notes when the patient's voice first rises above the room.
+// While the tablet itself is speaking, and for a moment after while the room still echoes it,
+// loudness is not counted: that voice is not the patient's.
+function clip() {
+  const t0 = now(), out = { ms: null, onset_ms: null, audio: null };
+  if (!S.recording) return { out, stop: () => { out.ms = now() - t0; return Promise.resolve(out); } };
+  if (audioCtx.state === "suspended") audioCtx.resume();   // some browsers pause listening until a touch
+  const rec = new MediaRecorder(stream), parts = [], buf = new Float32Array(analyser.fftSize);
+  let live = true, loud = 0, lastTalk = 0;
+  rec.ondataavailable = (e) => parts.push(e.data);
+  rec.start();
+  (function listen() {
+    if (!live) return;
+    analyser.getFloatTimeDomainData(buf);
+    const rms = Math.sqrt(buf.reduce((a, x) => a + x * x, 0) / buf.length);
+    if (talking) lastTalk = now();
+    loud = now() - lastTalk > 300 && rms > 0.03 ? loud + 1 : 0;
+    if (loud >= 3 && out.onset_ms === null) out.onset_ms = now() - t0;
+    requestAnimationFrame(listen);
+  })();
+  const stop = () => new Promise((done) => {
+    live = false; out.ms = now() - t0;
+    rec.onstop = () => { const fr = new FileReader(); fr.onload = () => { out.audio = fr.result; done(out); };
+                         fr.readAsDataURL(new Blob(parts, { type: rec.mimeType })); };
+    rec.stop();
+  });
+  return { out, stop };
+}
+
+// ----------------------------------------------------------------- before the patient starts (examiner, English)
+function details() {
+  tell("screen", { name: "details" });
+  h(`<div class="exam"><h1>Before the patient starts</h1>
+    <p class="soft">For the examiner. These go into the session file. Use a code, never a name.</p>
+    <label class="field">ID code <input type="text" id="pid" value="${DEMO ? "DEMO-1" : ""}"></label>
+    <label class="field">Age <input type="number" id="age" min="18" max="110" value="${DEMO ? 72 : ""}"></label>
+    <label class="field">Years of schooling <input type="number" id="school" min="0" max="30" value="${DEMO ? 9 : ""}"></label>
+    <p>The screens speak to the patient as:</p>
+    <div class="row" style="margin:0 0 14px"><button class="sex" data-sex="m">a man</button><button class="sex" data-sex="f">a woman</button></div>
+    <label class="field"><input type="checkbox" id="aloud" checked> Read every question and its options aloud</label>
+    <button class="go" id="start" disabled>Start</button></div>`);
+  let sex = null;
+  app.querySelectorAll(".sex").forEach((b) => b.onclick = () => {
+    sex = b.dataset.sex; $("start").disabled = false;
+    app.querySelectorAll(".sex").forEach((x) => x.classList.toggle("on", x === b));
+  });
+  $("start").onclick = () => {
+    const num = (id) => $(id).value === "" ? null : Number($(id).value);
+    S.patient = { id: $("pid").value.trim(), age: num("age"), schooling: num("school"), sex };
+    S.read_aloud = $("aloud").checked; UI = DATA.ui[sex];
+    tell("details", { patient: S.patient, read_aloud: S.read_aloud });
+    consent();
+  };
+}
+
+// ----------------------------------------------------------------- the patient's screens
+function consent() {
+  tell("screen", { name: "consent" });
+  h(`<h1>${UI.consent_title}</h1><p>${UI.consent_text}</p><div class="row">
+     <button class="go" id="yes">${UI.consent_yes}</button><button id="no">${UI.consent_no_audio}</button></div>`);
+  $("yes").onclick = async () => { if (!DEMO) await openMic(); tell("consent", { recording: S.recording }); sound(); };
+  $("no").onclick = () => { tell("consent", { recording: false }); sound(); };
+}
+function sound() {
+  tell("screen", { name: "sound" });
+  h(`<h1>${UI.sound_title}</h1><p>${UI.sound_text}</p><div class="row">
+     <button id="play">${UI.sound_play}</button><button class="go" id="ok">${UI.sound_ok}</button></div>`);
+  $("play").onclick = () => say([UI.sound_sample], () => {});
+  $("ok").onclick = () => { hush(); story(); };
+}
+function story() {
+  tell("screen", { name: "story" });
+  h(`<h1>${UI.story_title}</h1><p>${UI.story_text}</p><button class="go" id="start">${UI.story_start}</button>`);
+  $("start").onclick = () => {
+    const t0 = now();
+    const after = (spoken) => { hush(); S.story_ms = now() - t0; tell("story", { ms: S.story_ms, spoken }); recall(); };
+    const words = () => {     // no voice on this device, or the walkthrough: show the words instead
+      h(`<h1>${UI.story_title}</h1><div class="${DEMO ? "soft" : ""}">${DATA.lines.map(esc).join(" ")}</div>
+         <div class="row"><button class="go" id="next">${UI.story_done}</button></div>`);
+      $("next").onclick = () => after(false);
+    };
+    if (DEMO) return words();
+    h(`<h1>${UI.story_title}</h1><p class="soft">${UI.story_playing}</p>`);
+    tellStory((spoken) => spoken ? after(true) : words());
+  };
+}
+function recBadge() { return S.recording ? `<div class="rec"><i></i><span>REC</span></div>` : ""; }
+function recall() {
+  tell("screen", { name: "recall" });
+  const c = clip();
+  h(`${recBadge()}<h1>${UI.recall_title}</h1><p>${UI.recall_text}</p><button class="go" id="done">${UI.recall_done}</button>`);
+  aloud([UI.recall_text], () => {});
+  $("done").onclick = async () => { hush(); S.recall = await c.stop(); tell("recall", { ms: S.recall.ms }); ask(0); };
+}
+// Every question twice: out loud first (recorded and timed), then with its options.
+function ask(n) {
+  if (n >= QS.length) return thanks();
+  const q = QS[n], a = { id: q.id, fact: q.fact, kind: q.kind, family: q.family, open: null, option: null };
+  S.answers.push(a);
+  const head = `<div class="soft">${UI.progress.replace("{n}", n + 1).replace("{total}", QS.length)}</div>
+                ${q.stem ? `<div class="stem">${esc(q.stem)}</div>` : ""}<div class="q">${esc(q.question)}</div>`;
+  const again = `<button class="again" id="again">&#128266; ${UI.listen_again}</button>`;
+
+  // Out loud: the question is read, then the patient answers in their own words.
+  tell("screen", { name: "open", q: q.id, kind: q.kind, family: q.family });
+  const t0 = now(), c = clip();
+  let heard = null, repeats = 0;
+  const read = () => aloud([q.stem, q.question].filter(Boolean), () => { if (heard === null) heard = now() - t0; });
+  const marks = q.kind === "context" ? [["right", "The right answer"], ["tempting", "The tempting wrong answer"], ["other", "Something else"], ["none", "Nothing"]]
+                                     : [["right", "The right answer"], ["other", "Something else"], ["none", "Nothing"]];
+  const sim = DEMO ? `<p class="soft">Walkthrough: pick what the patient says.</p><div class="row">` +
+      marks.map(([k, t]) => `<button data-sim="${k}">${t}</button>`).join("") + `</div>`
+    : `<button class="go" id="done">${UI.open_done}</button>`;
+  h(`${recBadge()}${head}<p>${UI.open_prompt}</p>${again}${sim}`);
+  read();
+  $("again").onclick = () => { repeats++; read(); };
+  const finish = async (mark) => {
+    hush(); a.open = await c.stop(); Object.assign(a.open, { mark, read_ms: heard, repeats });
+    tell("open", { q: q.id, kind: q.kind, family: q.family, ms: a.open.ms, onset_ms: a.open.onset_ms, mark });
+    options();
+  };
+  if (DEMO) app.querySelectorAll("[data-sim]").forEach((b) => b.onclick = () => finish(b.dataset.sim));
+  else $("done").onclick = () => finish(null);
+
+  // With options: each option is read aloud and lit up as it is read; the clock runs from when they appear.
+  function options() {
+    tell("screen", { name: "options", q: q.id, kind: q.kind, family: q.family });
+    const t1 = now(), path = [];
+    let heardAll = null, again2 = 0;
+    h(`${head}<p class="soft">${UI.options_prompt}</p>${again}<div id="opts">${q.options.map((o, i) =>
+        `<button class="opt" data-i="${i}">${esc(o.text)}</button>`).join("")}
+       <button class="opt idk" data-i="-1">${UI.abstain}</button></div>`);
+    const box = $("opts"), buttons = [...box.querySelectorAll("button")];
+    const light = (i) => buttons.forEach((b, j) => b.classList.toggle("say", i === j));
+    const read = () => aloud([...q.options.map((o) => o.text), UI.abstain],
+                             () => { light(-1); if (heardAll === null) heardAll = now() - t1; }, light);
+    read();
+    $("again").onclick = () => { again2++; read(); };
+    // The finger's (or mouse's) way to the answer, as fractions of the option area.
+    box.onpointermove = (e) => { const r = box.getBoundingClientRect();
+      if (path.length < 400) path.push([now() - t1, +((e.clientX - r.left) / r.width).toFixed(3), +((e.clientY - r.top) / r.height).toFixed(3)]); };
+    buttons.forEach((b) => b.onclick = () => {
+      hush();
+      const i = Number(b.dataset.i);
+      a.option = { ms: now() - t1, choice: i < 0 ? "none" : q.options[i].kind, position: i, path, read_ms: heardAll, repeats: again2 };
+      tell("option", { q: q.id, kind: q.kind, family: q.family, choice: a.option.choice, ms: a.option.ms, path });
+      ask(n + 1);
+    });
+  }
+}
+function thanks() {
+  tell("screen", { name: "thanks" });
+  hush();
+  if (stream) stream.getTracks().forEach((t) => t.stop());
+  h(`<h1>${UI.thanks_title}</h1><p>${UI.thanks_text}</p>
+     <div class="exam soft" style="margin-top:40px">For the examiner: <button id="review">Mark the spoken answers</button></div>`);
+  $("review").onclick = review;
+}
+
+// ----------------------------------------------------------------- the examiner's screens (English)
+const MARKS = { context: [["right", "Right"], ["tempting", "Tempting answer"], ["other", "Other"], ["none", "No answer"]],
+                content: [["right", "Right"], ["other", "Wrong"], ["none", "No answer"]] };
+function review() {
+  tell("screen", { name: "review" });
+  const opens = S.answers.filter((a) => a.open);
+  const player = (c) => c && c.audio ? `<audio controls src="${c.audio}"></audio>` : `<span class="soft">no recording</span>`;
+  h(`<div class="exam"><h1>Mark the spoken answers</h1>
+    <p class="soft">Listen to each recording and mark it. The patient should not see this screen.</p>
+    <h2>The retelling</h2>${player(S.recall)}
+    <p class="soft">Tick each thing the patient mentioned. <span class="tag">asked</span> marks the details asked about later.</p>
+    <div class="units">${DATA.units.map((u, i) => `<label class="unit"><input type="checkbox" data-u="${i}" ${S.recalled[i] ? "checked" : ""}>
+      ${esc(u.text)} ${u.asked ? `<span class="tag">asked</span>` : ""}</label>`).join("")}</div>
+    <h2>The questions answered out loud</h2>
+    <table><tr><th>Question</th><th>Right answer / tempting answer</th><th>Recording and mark</th></tr>
+    ${opens.map((a) => { const q = QS[a.id - 1], find = (k) => (q.options.find((o) => o.kind === k) || {}).text || "";
+      return `<tr><td dir="auto"><span class="tag">${q.family}</span><br>${esc(q.stem)}<br><b>${esc(q.question)}</b></td>
+        <td dir="auto">${esc(find("right"))}<br><span class="soft">${esc(find("tempting"))}</span></td>
+        <td>${player(a.open)}<div class="marks" data-q="${a.id}">${MARKS[q.kind].map(([k, t]) =>
+          `<button data-m="${k}" class="${a.open.mark === k ? "on" : ""}">${t}</button>`).join("")}</div></td></tr>`; }).join("")}
+    </table><button class="go" id="res">Show the results</button></div>`);
+  app.querySelectorAll("[data-u]").forEach((b) => b.onchange = () => { S.recalled[Number(b.dataset.u)] = b.checked; });
+  app.querySelectorAll(".marks").forEach((box) => box.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    S.answers[Number(box.dataset.q) - 1].open.mark = b.dataset.m;
+    box.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  }));
+  $("res").onclick = results;
+}
+// Counts only: no cut-off and no verdict. Free recall, cued recall, recognition and cue gain are
+// counted on the same details, so the four can be compared.
+function score(S) {
+  const share = (xs, f) => xs.length ? xs.filter(f).length / xs.length : null;
+  const median = (xs) => { const s = xs.filter((x) => x != null).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : null; };
+  const minus = (x, y) => x == null || y == null ? null : x - y;
+  const facts = S.answers.filter((a) => a.kind === "content"), links = S.answers.filter((a) => a.kind === "context");
+  const marked = (xs) => xs.filter((a) => a.open && a.open.mark), chose = (xs) => xs.filter((a) => a.option);
+  const asked = DATA.units.map((u, i) => u.asked && S.recalled[i]).filter((x, i) => DATA.units[i].asked);
+  const opens = S.answers.filter((a) => a.open && a.open.read_ms != null);
+  const r = {
+    free_story: share(S.recalled, Boolean),
+    free_facts: share(asked, Boolean),
+    cued_facts: share(marked(facts), (a) => a.open.mark === "right"),
+    recog_facts: share(chose(facts), (a) => a.option.choice === "right"),
+    cued_links: share(marked(links), (a) => a.open.mark === "right"),
+    recog_links: share(chose(links), (a) => a.option.choice === "right"),
+    tempting_picks: chose(links).filter((a) => a.option.choice === "tempting").length,
+    wrong_links: chose(links).filter((a) => a.option.choice !== "right").length,
+    option_ms: median(S.answers.map((a) => a.option && a.option.ms)),
+    // Spoken answers are timed from the moment the tablet finished reading the question.
+    open_ms: median(opens.map((a) => a.open.ms - a.open.read_ms)),
+    first_word_ms: median(opens.map((a) => a.open.onset_ms == null ? null : a.open.onset_ms - a.open.read_ms)),
+  };
+  r.cue_gain = minus(r.cued_facts, r.free_facts);
+  r.option_help = minus(r.recog_links, r.cued_links);
+  r.gap = minus(r.recog_links, r.recog_facts);
+  return r;
+}
+function results() {
+  const r = score(S); S.scores = r;
+  tell("screen", { name: "results" }); tell("scores", { scores: r });
+  const pct = (x) => x == null ? "–" : Math.round(x * 100) + "%", ms = (x) => x == null ? "–" : (x / 1000).toFixed(1) + " s";
+  const pts = (x) => x == null ? "–" : (x > 0 ? "+" : "") + Math.round(x * 100) + " points";
+  const p = S.patient || {};
+  h(`<div class="exam"><h1>Results of this session</h1>
+    <p class="soft">Counts from one session. Placeholder story and questions, no cut-off, not a diagnosis.
+      Patient ${esc(p.id || "(no code)")}, age ${p.age == null ? "–" : p.age}, ${p.schooling == null ? "–" : p.schooling} years of schooling.</p>
+    <table><tr><th></th><th>Free recall</th><th>Cued recall</th><th>Recognition</th></tr>
+      <tr><td><b>Details</b> (what happened)</td><td class="big">${pct(r.free_facts)}</td><td class="big">${pct(r.cued_facts)}</td><td class="big">${pct(r.recog_facts)}</td></tr>
+      <tr><td><b>Links</b> (who said it, what came next, why, what changed)</td><td>–</td><td class="big">${pct(r.cued_links)}</td><td class="big">${pct(r.recog_links)}</td></tr></table>
+    <table>
+      <tr><td>Cue gain on details (cued minus free recall)</td><td><b>${pts(r.cue_gain)}</b></td></tr>
+      <tr><td>Help from the options on links (recognition minus cued recall)</td><td><b>${pts(r.option_help)}</b></td></tr>
+      <tr><td>Gap (links minus details, with options)</td><td><b>${pts(r.gap)}</b></td></tr>
+      <tr><td>Everything retold, of all ${DATA.units.length} things told</td><td><b>${pct(r.free_story)}</b></td></tr>
+      <tr><td>Wrong link answers that were the tempting one</td><td><b>${r.tempting_picks} of ${r.wrong_links}</b></td></tr>
+      <tr><td>Usual time to choose an option</td><td><b>${ms(r.option_ms)}</b></td></tr>
+      <tr><td>Usual time for a spoken answer / to the first word</td><td><b>${ms(r.open_ms)} / ${ms(r.first_word_ms)}</b></td></tr></table>
+    <div class="row"><button class="go" id="save">Save the session file</button><button id="back">Back to marking</button></div></div>`);
+  $("back").onclick = review;
+  $("save").onclick = () => {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([JSON.stringify(Object.assign({ questions: QS, units: DATA.units }, S), null, 1)], { type: "application/json" }));
+    link.download = "session-" + (S.patient && S.patient.id ? S.patient.id.replace(/[^\w-]/g, "") + "-" : "") +
+                    S.started.slice(0, 19).replace(/[:T]/g, "-") + ".json";
+    link.click();
+  };
+}
+tell("ready", { questions: QS.length, units: DATA.units.length, locale: DATA.locale, story_seconds: DATA.story_seconds });
+details();
+</script>
+</body>
+</html>

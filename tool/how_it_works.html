@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>How The Tool Works</title>
+<style>
+:root { --bg:#f4f6f5; --card:#fff; --ink:#15201c; --soft:#5d6b65; --line:#cfd8d3; --go:#10605a; --content:#955510; --context:#10605a;
+        --right:#45662d; --tempt:#9d3125; --other:#6d7c75; --none:#8a7a3a; --hi:#dcece9; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0f1513; --card:#17201d; --ink:#e6ece9; --soft:#9aa8a2; --line:#2c3833;
+        --go:#4fb3a8; --content:#d39a52; --context:#4fb3a8; --right:#8cbf6a; --tempt:#e0705f; --other:#9aa8a2; --none:#c9b45c; --hi:#14302d; } }
+:root[data-theme="dark"] { --bg:#0f1513; --card:#17201d; --ink:#e6ece9; --soft:#9aa8a2; --line:#2c3833;
+        --go:#4fb3a8; --content:#d39a52; --context:#4fb3a8; --right:#8cbf6a; --tempt:#e0705f; --other:#9aa8a2; --none:#c9b45c; --hi:#14302d; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:14.5px/1.5 system-ui,"Segoe UI",Arial,sans-serif; }
+header { padding:14px 16px 6px; display:flex; flex-wrap:wrap; gap:8px 16px; align-items:baseline; }
+h1 { font-size:20px; margin:0; }
+header p { margin:0; color:var(--soft); }
+.cols { display:grid; grid-template-columns:minmax(320px,1fr) minmax(340px,1fr); gap:14px; padding:8px 16px 30px; align-items:start; }
+@media (max-width:900px) { .cols { grid-template-columns:1fr; } }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--soft); margin:0 0 8px; }
+iframe { width:100%; height:680px; border:1px solid var(--line); border-radius:10px; background:var(--bg); }
+.bar { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+button, select { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:5px 10px; cursor:pointer; }
+ol.steps { margin:0; padding:0; list-style:none; counter-reset:s; }
+ol.steps li { counter-increment:s; padding:6px 8px 6px 34px; border-radius:8px; position:relative; color:var(--soft); }
+ol.steps li::before { content:counter(s); position:absolute; left:8px; top:6px; width:19px; height:19px; border-radius:50%; border:1.5px solid var(--line);
+  font-size:11.5px; text-align:center; line-height:17px; }
+ol.steps li.on { background:var(--hi); color:var(--ink); font-weight:600; }
+ol.steps li.done::before { content:"✓"; border-color:var(--right); color:var(--right); }
+ol.steps small { display:block; font-weight:400; color:var(--soft); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+@media (max-width:1150px) { .grid2 { grid-template-columns:1fr; } }
+.bins { display:grid; grid-template-columns:auto repeat(4,1fr); gap:6px; align-items:stretch; font-size:12.5px; }
+.bins .hd { color:var(--soft); text-align:center; }
+.bin { min-height:44px; border:1.5px dashed var(--line); border-radius:8px; padding:4px; display:flex; flex-wrap:wrap; gap:3px; align-content:flex-start; }
+.chip { width:22px; height:22px; border-radius:6px; color:#fff; font-size:11px; display:flex; align-items:center; justify-content:center; animation:drop .45s ease; }
+@keyframes drop { from { transform:translateY(-18px) scale(.6); opacity:0; } }
+.rowlab { display:flex; align-items:center; font-weight:600; }
+.meter { margin:7px 0; }
+.meter .lab { display:flex; justify-content:space-between; font-size:13px; }
+.meter .track { height:10px; background:var(--line); border-radius:6px; overflow:hidden; }
+.meter .fill { height:100%; width:0; border-radius:6px; transition:width .5s; }
+#log { margin:0; padding:0; list-style:none; font-size:13px; max-height:150px; overflow:auto; }
+#log li { padding:3px 0; border-bottom:1px solid var(--line); }
+#log li:first-child { font-weight:600; }
+canvas { width:100%; height:120px; border:1px solid var(--line); border-radius:8px; }
+.soft { color:var(--soft); font-size:12.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>How the tool works</h1>
+  <p>Left: what the patient sees. Right: what the tool does with it, as it happens. This is a walkthrough: nothing is recorded, and you choose what the patient "says".</p>
+</header>
+<div class="cols">
+  <div class="card">
+    <div class="bar"><h2 style="margin:0">The patient's screen</h2>
+      <select id="lang"><option value="en">English</option><option value="ar_eg">Egyptian Arabic</option></select>
+      <button id="again">Start again</button></div>
+    <iframe id="frame" title="The test"></iframe>
+  </div>
+  <div>
+    <div class="card">
+      <h2>The steps</h2>
+      <ol class="steps" id="steps">
+        <li data-s="details">The examiner fills in the patient<small>An ID code, age, years of schooling, and whether the screens speak to a man or a woman (it matters in Arabic).</small></li>
+        <li data-s="consent">Ask permission<small>Recording starts only if the patient agrees.</small></li>
+        <li data-s="sound">Check the sound<small>The patient confirms they can hear.</small></li>
+        <li data-s="story">Tell the story once<small>A hand-written story of about a minute and a half. One voice, the same for everyone.</small></li>
+        <li data-s="recall">Record the retelling<small>Everything remembered, in the patient's own words. Timed.</small></li>
+        <li data-s="questions">Ask each question twice<small>First out loud: the tablet reads the question, then records the answer and times it. Then three options, each read aloud and lit up as it is read; the choice, the time and the finger path are saved.</small></li>
+        <li data-s="review">The examiner marks the recordings<small>After the patient has finished, so no right answer is ever shown to them.</small></li>
+        <li data-s="results">Count, and save one file<small>Details: free recall, cued recall, recognition and the cue gain. Links: cued recall and recognition. The gap, the help from the options, the timings.</small></li>
+      </ol>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Sorting each answer</h2>
+        <div class="bins">
+          <div></div><div class="hd">Right</div><div class="hd">Tempting</div><div class="hd">Other</div><div class="hd">Don't remember</div>
+          <div class="rowlab" style="color:var(--content)">Details</div><div class="bin" id="b-content-right"></div><div class="bin" style="border-style:none;color:var(--soft);font-size:11px">none: a detail has no tempting option</div><div class="bin" id="b-content-other"></div><div class="bin" id="b-content-none"></div>
+          <div class="rowlab" style="color:var(--context)">Links</div><div class="bin" id="b-context-right"></div><div class="bin" id="b-context-tempting"></div><div class="bin" id="b-context-other"></div><div class="bin" id="b-context-none"></div>
+        </div>
+        <p class="soft" style="margin:8px 0 0">One square per question, sorted by the option chosen. A dot marks an answer that was already right out loud.</p>
+      </div>
+      <div class="card">
+        <h2>The running count</h2>
+        <div id="meters"></div>
+      </div>
+      <div class="card">
+        <h2>The last answer's finger path</h2>
+        <canvas id="path" width="600" height="240"></canvas>
+        <div class="soft" id="pathnote">Move to an option and press it. The route and the time are saved with the answer.</div>
+      </div>
+      <div class="card">
+        <h2>What just happened</h2>
+        <ul id="log"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const frame = $("#frame");
+let answers = [], opens = {}, total = 20;
+const FAMILY = { SOCIAL: "who said it", TEMPORAL_NEXT: "what came next", CAUSAL: "what it led to", REVISES: "what it changed", content: "a detail" };
+const WORD = { right: "the right answer", tempting: "the tempting wrong answer", other: "another wrong answer", none: "I don't remember" };
+const COLOR = { right: "--right", tempting: "--tempt", other: "--other", none: "--none" };
+
+function reset() {
+  answers = []; opens = {};
+  document.querySelectorAll(".bin").forEach((b) => b.innerHTML = "");
+  $("#log").innerHTML = ""; step("details"); meters(); drawPath([]);
+  frame.src = "test_" + $("#lang").value + ".html?demo=1";
+}
+function step(name) {
+  const order = ["details", "consent", "sound", "story", "recall", "questions", "review", "results"];
+  const at = order.indexOf(name);
+  document.querySelectorAll("#steps li").forEach((li) => { const i = order.indexOf(li.dataset.s);
+    li.classList.toggle("on", i === at); li.classList.toggle("done", i < at); });
+}
+function log(text) { const li = document.createElement("li"); li.textContent = text; $("#log").prepend(li); }
+function meters() {
+  const share = (xs, f) => xs.length ? xs.filter(f).length / xs.length : null;
+  const content = answers.filter((a) => a.kind === "content"), context = answers.filter((a) => a.kind === "context");
+  const cOpt = share(content, (a) => a.choice === "right"), xOpt = share(context, (a) => a.choice === "right");
+  const cOpen = share(content, (a) => opens[a.q] === "right"), xOpen = share(context, (a) => opens[a.q] === "right");
+  const rows = [["Details, out loud", cOpen, "--content"], ["Details, with options", cOpt, "--content"],
+                ["Links, out loud", xOpen, "--context"], ["Links, with options", xOpt, "--context"]];
+  const pct = (x) => x == null ? "–" : Math.round(x * 100) + "%";
+  const signed = (x) => x == null ? "–" : (x > 0 ? "+" : "") + Math.round(x * 100) + " points";
+  $("#meters").innerHTML = rows.map(([lab, v, col]) => `<div class="meter"><div class="lab"><span>${lab}</span><b>${pct(v)}</b></div>
+      <div class="track"><div class="fill" style="width:${v == null ? 0 : v * 100}%;background:var(${col})"></div></div></div>`).join("") +
+    `<div class="meter"><div class="lab"><span>Gap (links minus details, with options)</span><b>${signed(cOpt == null || xOpt == null ? null : xOpt - cOpt)}</b></div></div>
+     <div class="meter"><div class="lab"><span>Help from the options on links</span><b>${signed(xOpt == null || xOpen == null ? null : xOpt - xOpen)}</b></div></div>
+     <div class="soft">${answers.length} of ${total} questions answered. Free recall and the cue gain need the retelling marked, so they appear on the results screen. Counts only, never a verdict.</div>`;
+}
+function drawPath(path, ms) {
+  const c = $("#path"), g = c.getContext("2d");
+  g.clearRect(0, 0, c.width, c.height);
+  if (!path.length) return;
+  g.strokeStyle = css("--go"); g.lineWidth = 3; g.lineJoin = "round"; g.beginPath();
+  path.forEach(([, x, y], i) => { const px = x * c.width, py = y * c.height; i ? g.lineTo(px, py) : g.moveTo(px, py); });
+  g.stroke();
+  const [, ex, ey] = path[path.length - 1];
+  g.fillStyle = css("--go"); g.beginPath(); g.arc(ex * c.width, ey * c.height, 7, 0, 7); g.fill();
+  $("#pathnote").textContent = `${path.length} points saved over ${(ms / 1000).toFixed(1)} seconds.`;
+}
+window.addEventListener("message", (e) => {
+  const m = e.data; if (!m || !m.rlm) return;
+  if (m.type === "ready") { total = m.questions; log(`A session is ready: a story of about ${m.story_seconds} seconds, ${m.questions} questions, ${m.units} things that can be retold.`); }
+  if (m.type === "details") log(`Patient ${m.patient.id || "(no code)"}: age ${m.patient.age ?? "–"}, ${m.patient.schooling ?? "–"} years of schooling. ` +
+      `The screens speak to ${m.patient.sex === "f" ? "a woman" : "a man"}; questions ${m.read_aloud ? "are" : "are not"} read aloud.`);
+  if (m.type === "screen") {
+    step(["open", "options"].includes(m.name) ? "questions" : m.name === "thanks" ? "review" : m.name);
+    if (m.name === "open") log(`Question ${m.q} (${FAMILY[m.family]}): read aloud, then the recorder listens. The clock starts.`);
+    if (m.name === "options") log(`Question ${m.q}: three options shown and read aloud, each lit up as it is read.`);
+    if (m.name === "thanks") log("The patient is finished. The examiner takes over.");
+  }
+  if (m.type === "consent") log(m.recording ? "Permission given: the microphone is on." : "No recording in this walkthrough: only choices and times are kept.");
+  if (m.type === "story") log(`The story ran for ${(m.ms / 1000).toFixed(0)} seconds.`);
+  if (m.type === "recall") log(`Retelling saved: ${(m.ms / 1000).toFixed(1)} seconds of speech to mark later.`);
+  if (m.type === "open") { opens[m.q] = m.mark; log(`Spoken answer saved after ${(m.ms / 1000).toFixed(1)} s` + (m.mark ? `, marked as ${WORD[m.mark]}.` : ". The examiner marks it later.")); }
+  if (m.type === "option") {
+    answers.push(m);
+    const chip = document.createElement("div"); chip.className = "chip"; chip.style.background = `var(${COLOR[m.choice]})`;
+    chip.textContent = opens[m.q] === "right" ? "•" : ""; chip.title = `Question ${m.q}: ${FAMILY[m.family]}`;
+    $(`#b-${m.kind}-${m.choice}`).appendChild(chip);
+    log(`Question ${m.q}: chose ${WORD[m.choice]} in ${(m.ms / 1000).toFixed(1)} s. Sorted under ${m.kind}.`);
+    drawPath(m.path, m.ms); meters();
+  }
+  if (m.type === "scores") log("Results counted. The session can be saved as one file.");
+});
+$("#again").onclick = reset; $("#lang").onchange = reset;
+reset();
+</script>
+</body>
+</html>
