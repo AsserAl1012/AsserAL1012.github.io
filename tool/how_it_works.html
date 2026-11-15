@@ -81,8 +81,8 @@ canvas { width:100%; height:120px; border:1px solid var(--line); border-radius:8
         <h2>Sorting each answer</h2>
         <div class="bins">
           <div></div><div class="hd">Right</div><div class="hd">Tempting</div><div class="hd">Other</div><div class="hd">Don't remember</div>
-          <div class="rowlab" style="color:var(--content)">Details</div><div class="bin" id="b-content-right"></div><div class="bin" style="border-style:none;color:var(--soft);font-size:11px">none: a detail has no tempting option</div><div class="bin" id="b-content-other"></div><div class="bin" id="b-content-none"></div>
-          <div class="rowlab" style="color:var(--context)">Links</div><div class="bin" id="b-context-right"></div><div class="bin" id="b-context-tempting"></div><div class="bin" id="b-context-other"></div><div class="bin" id="b-context-none"></div>
+          <div class="rowlab" style="color:var(--content)">Details</div><div class="bin" id="b-content-right"></div><div class="bin" style="border-style:none;color:var(--soft);font-size:11px">none: a detail has no tempting option</div><div class="bin" id="b-content-other"></div><div class="bin" id="b-content-dont_remember"></div>
+          <div class="rowlab" style="color:var(--context)">Links</div><div class="bin" id="b-context-right"></div><div class="bin" id="b-context-tempting"></div><div class="bin" id="b-context-other"></div><div class="bin" id="b-context-dont_remember"></div>
         </div>
         <p class="soft" style="margin:8px 0 0">One square per question, sorted by the option chosen. A dot marks an answer that was already right out loud.</p>
       </div>
@@ -109,8 +109,8 @@ const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 const frame = $("#frame");
 let answers = [], opens = {}, total = 20;
 const FAMILY = { SOCIAL: "who said it", TEMPORAL_NEXT: "what came next", CAUSAL: "what it led to", REVISES: "what it changed", content: "a detail" };
-const WORD = { right: "the right answer", tempting: "the tempting wrong answer", other: "another wrong answer", none: "I don't remember" };
-const COLOR = { right: "--right", tempting: "--tempt", other: "--other", none: "--none" };
+const WORD = { right: "the right answer", tempting: "the tempting wrong answer", other: "another wrong answer", dont_remember: "“I don't remember”", none: "no answer" };
+const COLOR = { right: "--right", tempting: "--tempt", other: "--other", dont_remember: "--none" };
 
 function reset() {
   answers = []; opens = {};

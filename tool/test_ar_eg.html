@@ -40,6 +40,8 @@ button:disabled { opacity:.45; cursor:default; }
 .exam input[type=text], .exam input[type=number] { font:inherit; padding:8px 10px; border:1.5px solid var(--line); border-radius:8px;
         background:var(--card); color:var(--ink); width:180px; margin-left:8px; }
 .big { font-size:30px; font-weight:700; }
+@media (max-width:560px) { .card { padding:20px 14px; } .exam { font-size:14.5px; } .big { font-size:22px; }
+  .exam th, .exam td { padding:6px 4px; } }
 .tag { display:inline-block; font-size:12px; border:1px solid var(--line); border-radius:999px; padding:1px 8px; color:var(--soft); }
 label.unit { display:block; margin:4px 0; }
 .units { direction:rtl; text-align:start; }
@@ -225,8 +227,8 @@ function ask(n) {
   const t0 = now(), c = clip();
   let heard = null, repeats = 0;
   const read = () => aloud([q.stem, q.question].filter(Boolean), () => { if (heard === null) heard = now() - t0; });
-  const marks = q.kind === "context" ? [["right", "The right answer"], ["tempting", "The tempting wrong answer"], ["other", "Something else"], ["none", "Nothing"]]
-                                     : [["right", "The right answer"], ["other", "Something else"], ["none", "Nothing"]];
+  const marks = q.kind === "context" ? [["right", "The right answer"], ["tempting", "The tempting wrong answer"], ["other", "Something else"], ["dont_remember", "“I don't remember”"], ["none", "Nothing"]]
+                                     : [["right", "The right answer"], ["other", "Something else"], ["dont_remember", "“I don't remember”"], ["none", "Nothing"]];
   const sim = DEMO ? `<p class="soft">Walkthrough: pick what the patient says.</p><div class="row">` +
       marks.map(([k, t]) => `<button data-sim="${k}">${t}</button>`).join("") + `</div>`
     : `<button class="go" id="done">${UI.open_done}</button>`;
@@ -261,7 +263,7 @@ function ask(n) {
     buttons.forEach((b) => b.onclick = () => {
       hush();
       const i = Number(b.dataset.i);
-      a.option = { ms: now() - t1, choice: i < 0 ? "none" : q.options[i].kind, position: i, path, read_ms: heardAll, repeats: again2 };
+      a.option = { ms: now() - t1, choice: i < 0 ? "dont_remember" : q.options[i].kind, position: i, path, read_ms: heardAll, repeats: again2 };
       tell("option", { q: q.id, kind: q.kind, family: q.family, choice: a.option.choice, ms: a.option.ms, path });
       ask(n + 1);
     });
@@ -277,8 +279,10 @@ function thanks() {
 }
 
 // ----------------------------------------------------------------- the examiner's screens (English)
-const MARKS = { context: [["right", "Right"], ["tempting", "Tempting answer"], ["other", "Other"], ["none", "No answer"]],
-                content: [["right", "Right"], ["other", "Wrong"], ["none", "No answer"]] };
+// "I don't remember" is its own mark, the same word the abstain button records; "No answer" is silence.
+const DONT = ["dont_remember", "“I don't remember”"];
+const MARKS = { context: [["right", "Right"], ["tempting", "Tempting answer"], ["other", "Other"], DONT, ["none", "No answer"]],
+                content: [["right", "Right"], ["other", "Wrong"], DONT, ["none", "No answer"]] };
 function review() {
   tell("screen", { name: "review" });
   const opens = S.answers.filter((a) => a.open);
@@ -307,22 +311,29 @@ function review() {
 // Counts only: no cut-off and no verdict. Free recall, cued recall, recognition and cue gain are
 // counted on the same details, so the four can be compared.
 function score(S) {
-  const share = (xs, f) => xs.length ? xs.filter(f).length / xs.length : null;
+  const count = (xs, f) => xs.filter(f).length, share = (k, n) => n ? k / n : null;
   const median = (xs) => { const s = xs.filter((x) => x != null).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : null; };
   const minus = (x, y) => x == null || y == null ? null : x - y;
   const facts = S.answers.filter((a) => a.kind === "content"), links = S.answers.filter((a) => a.kind === "context");
   const marked = (xs) => xs.filter((a) => a.open && a.open.mark), chose = (xs) => xs.filter((a) => a.option);
-  const asked = DATA.units.map((u, i) => u.asked && S.recalled[i]).filter((x, i) => DATA.units[i].asked);
+  const told = DATA.units.map((u, i) => ({ asked: u.asked, told: S.recalled[i] })), asked = told.filter((u) => u.asked);
+  const right = (a) => a.open.mark === "right", picked = (k) => (a) => a.option.choice === k;
+  const c = {
+    told: count(told, (u) => u.told), units: told.length, free: count(asked, (u) => u.told), asked: asked.length,
+    cued: count(marked(facts), right), cued_of: marked(facts).length,
+    recog: count(chose(facts), picked("right")), recog_of: chose(facts).length,
+    cued_links: count(marked(links), right), cued_links_of: marked(links).length,
+    recog_links: count(chose(links), picked("right")), recog_links_of: chose(links).length,
+    tempting: count(chose(links), picked("tempting")), other: count(chose(links), picked("other")),
+    dont_spoken: count(marked(S.answers), (a) => a.open.mark === "dont_remember"),
+    dont_options: count(chose(S.answers), picked("dont_remember")),
+  };
   const opens = S.answers.filter((a) => a.open && a.open.read_ms != null);
   const r = {
-    free_story: share(S.recalled, Boolean),
-    free_facts: share(asked, Boolean),
-    cued_facts: share(marked(facts), (a) => a.open.mark === "right"),
-    recog_facts: share(chose(facts), (a) => a.option.choice === "right"),
-    cued_links: share(marked(links), (a) => a.open.mark === "right"),
-    recog_links: share(chose(links), (a) => a.option.choice === "right"),
-    tempting_picks: chose(links).filter((a) => a.option.choice === "tempting").length,
-    wrong_links: chose(links).filter((a) => a.option.choice !== "right").length,
+    counts: c,
+    free_story: share(c.told, c.units), free_facts: share(c.free, c.asked),
+    cued_facts: share(c.cued, c.cued_of), recog_facts: share(c.recog, c.recog_of),
+    cued_links: share(c.cued_links, c.cued_links_of), recog_links: share(c.recog_links, c.recog_links_of),
     option_ms: median(S.answers.map((a) => a.option && a.option.ms)),
     // Spoken answers are timed from the moment the tablet finished reading the question.
     open_ms: median(opens.map((a) => a.open.ms - a.open.read_ms)),
@@ -333,26 +344,67 @@ function score(S) {
   r.gap = minus(r.recog_links, r.recog_facts);
   return r;
 }
+const pct = (x) => x == null ? "–" : Math.round(x * 100) + "%";
+const secs = (x) => x == null ? "–" : (x / 1000).toFixed(1) + " s";
+// What the numbers say about this session, in plain words. It compares the person's numbers with each
+// other and with guessing. It cannot say whether a number is normal for someone of this age and
+// schooling: no healthy people have taken the test yet.
+function meaning(r) {
+  const c = r.counts;
+  const stored = r.recog_facts == null ? ""
+    : r.recog_facts >= 2 / 3 ? "Most were picked out from the options, so most were stored."
+    : r.recog_facts >= 0.5 ? "About half were picked out from the options."
+    : "With options they were picked out not much more often than by guessing (one in three): they may not have been stored, or the story was not heard well.";
+  const help = r.cue_gain == null ? "" : r.cue_gain > 0
+    ? `Asking brought back more than the retelling did (${pct(r.cued_facts)} against ${pct(r.free_facts)}): details that were there but needed a nudge.`
+    : `Asking brought back no more than the retelling did (${pct(r.cued_facts)} against ${pct(r.free_facts)}).`;
+  const gap = r.gap == null ? "" : r.gap < 0 ? `With options, links came out ${Math.round(-r.gap * 100)} points below details.`
+    : r.gap > 0 ? `With options, links came out ${Math.round(r.gap * 100)} points above details.` : "With options, links and details came out level.";
+  const wrong = c.tempting + c.other;
+  const mix = !wrong ? "No link answer chosen from the options was wrong."
+    : `Of ${wrong} wrong link answer${wrong > 1 ? "s" : ""} chosen from the options, ${c.tempting} ${c.tempting === 1 ? "was" : "were"} the tempting one: two true things put together wrongly. ` +
+      (c.tempting * 2 > wrong ? "Mostly mix-ups, then, rather than answers that had nothing to do with the question."
+       : c.tempting * 2 < wrong ? "Mostly answers that had nothing to do with the question, rather than mix-ups." : "");
+  const speed = (r.option_ms == null ? "" : `The usual option was chosen after ${secs(r.option_ms)}. `) +
+                (r.first_word_ms == null ? "" : `Spoken answers usually began ${secs(r.first_word_ms)} after the question was read out. `);
+  return [
+    `<b>Retelling.</b> ${c.told} of the ${c.units} things in the story came back: ${c.told - c.free} of the ${c.units - c.asked} about what happened
+     and who said or decided what, and ${c.free} of the ${c.asked} small details asked about later. Most people retell the main events and leave
+     small details out, so the second number is usually the lower one.`,
+    `<b>Details.</b> ${c.free} of ${c.asked} came back in the retelling, ${c.cued} of ${c.cued_of} when asked, and ${c.recog} of ${c.recog_of}
+     with three options. ${stored} ${help} A memory that was stored usually comes back better with help; one that was never stored stays poor
+     even with options.`,
+    `<b>Links.</b> ${c.cued_links} of ${c.cued_links_of} right out loud and ${c.recog_links} of ${c.recog_links_of} with options. ${gap}
+     Link questions are harder by design, because one of their options is always a mix-up of two true things, so links below details is expected.`,
+    `<b>Mistakes.</b> ${mix} “I don't remember”: ${c.dont_spoken} out loud, ${c.dont_options} with options.`,
+    `<b>Speed.</b> ${speed || "No times to report. "}There is nothing to compare them with yet.`,
+    `<b>What this cannot say.</b> Whether any of these numbers is normal. That needs results from healthy people of the same age and
+     schooling, which the tool does not have yet. One session is also too little to judge one person: healthy people differ a lot from
+     each other. Not a diagnosis.`,
+  ];
+}
 function results() {
   const r = score(S); S.scores = r;
   tell("screen", { name: "results" }); tell("scores", { scores: r });
-  const pct = (x) => x == null ? "–" : Math.round(x * 100) + "%", ms = (x) => x == null ? "–" : (x / 1000).toFixed(1) + " s";
   const pts = (x) => x == null ? "–" : (x > 0 ? "+" : "") + Math.round(x * 100) + " points";
-  const p = S.patient || {};
+  const c = r.counts, p = S.patient || {};
   h(`<div class="exam"><h1>Results of this session</h1>
     <p class="soft">Counts from one session. Placeholder story and questions, no cut-off, not a diagnosis.
       Patient ${esc(p.id || "(no code)")}, age ${p.age == null ? "–" : p.age}, ${p.schooling == null ? "–" : p.schooling} years of schooling.</p>
     <table><tr><th></th><th>Free recall</th><th>Cued recall</th><th>Recognition</th></tr>
-      <tr><td><b>Details</b> (what happened)</td><td class="big">${pct(r.free_facts)}</td><td class="big">${pct(r.cued_facts)}</td><td class="big">${pct(r.recog_facts)}</td></tr>
-      <tr><td><b>Links</b> (who said it, what came next, why, what changed)</td><td>–</td><td class="big">${pct(r.cued_links)}</td><td class="big">${pct(r.recog_links)}</td></tr></table>
+      <tr><td><b>Details</b><br><span class="soft">what happened</span></td><td class="big">${pct(r.free_facts)}</td><td class="big">${pct(r.cued_facts)}</td><td class="big">${pct(r.recog_facts)}</td></tr>
+      <tr><td><b>Links</b><br><span class="soft">who, next, why, what changed</span></td><td>–</td><td class="big">${pct(r.cued_links)}</td><td class="big">${pct(r.recog_links)}</td></tr></table>
     <table>
       <tr><td>Cue gain on details (cued minus free recall)</td><td><b>${pts(r.cue_gain)}</b></td></tr>
       <tr><td>Help from the options on links (recognition minus cued recall)</td><td><b>${pts(r.option_help)}</b></td></tr>
       <tr><td>Gap (links minus details, with options)</td><td><b>${pts(r.gap)}</b></td></tr>
-      <tr><td>Everything retold, of all ${DATA.units.length} things told</td><td><b>${pct(r.free_story)}</b></td></tr>
-      <tr><td>Wrong link answers that were the tempting one</td><td><b>${r.tempting_picks} of ${r.wrong_links}</b></td></tr>
-      <tr><td>Usual time to choose an option</td><td><b>${ms(r.option_ms)}</b></td></tr>
-      <tr><td>Usual time for a spoken answer / to the first word</td><td><b>${ms(r.open_ms)} / ${ms(r.first_word_ms)}</b></td></tr></table>
+      <tr><td>Everything retold, of all ${c.units} things told</td><td><b>${pct(r.free_story)}</b></td></tr>
+      <tr><td>Wrong link answers that were the tempting one</td><td><b>${c.tempting} of ${c.tempting + c.other}</b></td></tr>
+      <tr><td>“I don't remember”, out loud / with options</td><td><b>${c.dont_spoken} / ${c.dont_options}</b></td></tr>
+      <tr><td>Usual time to choose an option</td><td><b>${secs(r.option_ms)}</b></td></tr>
+      <tr><td>Usual time for a spoken answer / to the first word</td><td><b>${secs(r.open_ms)} / ${secs(r.first_word_ms)}</b></td></tr></table>
+    <h2>What these results say</h2>
+    ${meaning(r).map((x) => `<p>${x}</p>`).join("")}
     <div class="row"><button class="go" id="save">Save the session file</button><button id="back">Back to marking</button></div></div>`);
   $("back").onclick = review;
   $("save").onclick = () => {
